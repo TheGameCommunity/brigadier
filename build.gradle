@@ -6,8 +6,8 @@ apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 apply plugin: 'eclipse'
 
-group = 'com.mojang'
-version = project.hasProperty('buildNumber') ? "${project.majorMinor}.${project.buildNumber}" : "${project.majorMinor}.0-SNAPSHOT"
+group = 'com.thegamecommunity'
+version = "${project.version}"
 
 buildscript {
     repositories {
