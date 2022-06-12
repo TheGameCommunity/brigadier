@@ -33,7 +33,7 @@ public class FloatArgumentTypeTest {
     @Test
     public void parse() throws Exception {
         final StringReader reader = new StringReader("15");
-        assertThat(floatArg().parse(reader), is(15f));
+        assertThat(floatArg().parse(context.getSource(), reader), is(15f));
         assertThat(reader.canRead(), is(false));
     }
 
@@ -41,7 +41,7 @@ public class FloatArgumentTypeTest {
     public void parse_tooSmall() throws Exception {
         final StringReader reader = new StringReader("-5");
         try {
-            floatArg(0, 100).parse(reader);
+            floatArg(0, 100).parse(context.getSource(), reader);
             fail();
         } catch (final CommandSyntaxException ex) {
             assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.floatTooLow()));
@@ -53,7 +53,7 @@ public class FloatArgumentTypeTest {
     public void parse_tooBig() throws Exception {
         final StringReader reader = new StringReader("5");
         try {
-            floatArg(-100, 0).parse(reader);
+            floatArg(-100, 0).parse(context.getSource(), reader);
             fail();
         } catch (final CommandSyntaxException ex) {
             assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.floatTooHigh()));

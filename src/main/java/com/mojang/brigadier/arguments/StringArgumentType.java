@@ -38,7 +38,7 @@ public class StringArgumentType implements ArgumentType<String> {
     }
 
     @Override
-    public String parse(final StringReader reader) throws CommandSyntaxException {
+    public <S> String parse(final S context, final StringReader reader) throws CommandSyntaxException {
         if (type == StringType.GREEDY_PHRASE) {
             final String text = reader.getRemaining();
             reader.setCursor(reader.getTotalLength());

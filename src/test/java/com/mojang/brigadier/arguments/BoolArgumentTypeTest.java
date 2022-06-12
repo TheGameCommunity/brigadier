@@ -29,11 +29,11 @@ public class BoolArgumentTypeTest {
         type = bool();
     }
 
-    @Test
+	@Test
     public void parse() throws Exception {
         final StringReader reader = mock(StringReader.class);
         when(reader.readBoolean()).thenReturn(true);
-        assertThat(type.parse(reader), is(true));
+        assertThat(type.parse(context.getSource(), reader), is(true));
         verify(reader).readBoolean();
     }
 }

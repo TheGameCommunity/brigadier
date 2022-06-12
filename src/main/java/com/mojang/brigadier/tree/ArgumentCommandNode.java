@@ -56,7 +56,7 @@ public class ArgumentCommandNode<S, T> extends CommandNode<S> {
     @Override
     public void parse(final StringReader reader, final CommandContextBuilder<S> contextBuilder) throws CommandSyntaxException {
         final int start = reader.getCursor();
-        final T result = type.parse(reader);
+        final T result = type.parse(contextBuilder.getSource(), reader);
         final ParsedArgument<S, T> parsed = new ParsedArgument<>(start, reader.getCursor(), result);
 
         contextBuilder.withArgument(name, parsed);
@@ -85,10 +85,10 @@ public class ArgumentCommandNode<S, T> extends CommandNode<S> {
     }
 
     @Override
-    public boolean isValidInput(final String input) {
+    public boolean isValidInput(final S source, final String input) {
         try {
             final StringReader reader = new StringReader(input);
-            type.parse(reader);
+            type.parse(source, reader);
             return !reader.canRead() || reader.peek() == ' ';
         } catch (final CommandSyntaxException ignored) {
             return false;

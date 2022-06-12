@@ -77,7 +77,7 @@ public class LiteralCommandNode<S> extends CommandNode<S> {
     }
 
     @Override
-    public boolean isValidInput(final String input) {
+    public boolean isValidInput(S source, final String input) {
         return parse(new StringReader(input)) > -1;
     }
 

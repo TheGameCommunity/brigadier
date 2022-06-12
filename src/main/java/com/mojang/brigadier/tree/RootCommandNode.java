@@ -40,7 +40,7 @@ public class RootCommandNode<S> extends CommandNode<S> {
     }
 
     @Override
-    public boolean isValidInput(final String input) {
+    public boolean isValidInput(final S source, final String input) {
         return false;
     }
 

@@ -99,7 +99,7 @@ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
                 }
 
                 for (final String input : child.getExamples()) {
-                    if (sibling.isValidInput(input)) {
+                    if (sibling.isValidInput(consumer.getSource(), input)) {
                         matches.add(input);
                     }
                 }
@@ -114,7 +114,7 @@ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
         }
     }
 
-    protected abstract boolean isValidInput(final String input);
+    protected abstract boolean isValidInput(S source, final String input);
 
     @Override
     public boolean equals(final Object o) {

@@ -28,7 +28,7 @@ public class BoolArgumentType implements ArgumentType<Boolean> {
     }
 
     @Override
-    public Boolean parse(final StringReader reader) throws CommandSyntaxException {
+    public <S> Boolean parse(final S context, final StringReader reader) throws CommandSyntaxException {
         return reader.readBoolean();
     }
 
