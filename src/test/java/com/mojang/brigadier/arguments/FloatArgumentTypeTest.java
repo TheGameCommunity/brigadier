@@ -76,6 +76,6 @@ public class FloatArgumentTypeTest {
         assertThat(floatArg(), hasToString("float()"));
         assertThat(floatArg(-100), hasToString("float(-100.0)"));
         assertThat(floatArg(-100, 100), hasToString("float(-100.0, 100.0)"));
-        assertThat(floatArg(Integer.MIN_VALUE, 100), hasToString("float(-2.14748365E9, 100.0)"));
+        assertThat(floatArg(Integer.MIN_VALUE, 100), hasToString("float(-2.1474836E9, 100.0)"));
     }
 }
