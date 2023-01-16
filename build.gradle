@@ -85,6 +85,10 @@ task report {
     }
 }
 
+tasks.withType(JavaCompile) {
+	options.forkOptions.jvmArgs += ['--add-opens', 'java.base/java.lang=ALL-UNNAMED']
+}
+
 def publishDir = file("$buildDir/repo")
 
 clean.doLast {
