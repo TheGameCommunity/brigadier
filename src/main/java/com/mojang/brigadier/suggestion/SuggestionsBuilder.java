@@ -56,8 +56,8 @@ public class SuggestionsBuilder {
     }
     
     public SuggestionsBuilder suggest(final Suggestion suggestion) {
-    	result.add(suggestion);
-    	return this;
+        result.add(suggestion);
+        return this;
     }
 
     public SuggestionsBuilder suggest(final String text) {
