@@ -66,6 +66,10 @@ public class SuggestionsBuilder {
         }
         return suggest(new Suggestion(StringRange.between(start, input.length()), text));
     }
+    
+    public SuggestionsBuilder forceSuggest(final String text) {
+    	return suggest(new Suggestion(StringRange.between(start, input.length()), text));
+    }
 
     public SuggestionsBuilder suggest(final String text, final Message tooltip) {
         if (text.equals(remaining)) {
@@ -74,6 +78,10 @@ public class SuggestionsBuilder {
         return suggest(new Suggestion(StringRange.between(start, input.length()), text, tooltip));
     }
 
+    public SuggestionsBuilder forceSuggest(final String text, final Message tooltip) {
+    	return suggest(new Suggestion(StringRange.between(start, input.length()), text, tooltip));
+    }
+    
     public SuggestionsBuilder suggest(final int value) {
         return suggest(new IntegerSuggestion(StringRange.between(start, input.length()), value));
     }
