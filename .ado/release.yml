@@ -74,17 +74,8 @@ jobs:
     inputs:
       azureSubscription: '$(rConnection)'
       KeyVaultName: '$(keyVault)'
-      SecretsFilter: 'aws-access-key-id, aws-secret-access-key, access-key-prod-librariesminecraftnet'
+      SecretsFilter: 'access-key-prod-librariesminecraftnet'
       RunAsPreJob: false
-
-  - task: S3Upload@1
-    env:
-      AWS_ACCESS_KEY_ID: '$(aws-access-key-id)'
-      AWS_SECRET_ACCESS_KEY: '$(aws-secret-access-key)'
-    inputs:
-      bucketName: 'minecraft-libraries'
-      globExpressions: '**'
-      sourceFolder: '$(Pipeline.Workspace)/repo'
 
   - task: AzureCLI@2
     displayName: Azure CLI
