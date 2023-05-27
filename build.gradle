@@ -95,27 +95,8 @@ clean.doLast {
     delete publishDir
 }
 
-if (version.endsWith("SNAPSHOT")) {
-    publishing.repositories {
-        mavenLocal()
-    }
-} else {
-    publishing.repositories {
-        maven {
-           url "$buildDir/repo"
-        }
-    }
-
-    publish.doLast {
-        publishDir.eachFileRecurse {
-            if (!it.isFile()) {
-                return
-            }
-            // Remove junk files
-            if (it.name.contains(".xml") || it.name.contains(".md5")) {
-                it.delete()
-            }
-        }
-    }
+publishing.repositories {
+    mavenLocal()
 }
+
 
