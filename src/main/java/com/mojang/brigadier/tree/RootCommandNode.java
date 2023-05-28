@@ -57,7 +57,7 @@ public class RootCommandNode<S> extends CommandNode<S> {
     }
 
     @Override
-    protected String getSortedKey() {
+    public String getSortedKey() {
         return "";
     }
 

@@ -115,7 +115,7 @@ public class ArgumentCommandNode<S, T> extends CommandNode<S> {
     }
 
     @Override
-    protected String getSortedKey() {
+    public String getSortedKey() {
         return name;
     }
 

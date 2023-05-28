@@ -114,7 +114,7 @@ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
         }
     }
 
-    protected abstract boolean isValidInput(S source, final String input);
+    public abstract boolean isValidInput(S source, final String input);
 
     @Override
     public boolean equals(final Object o) {
@@ -148,7 +148,7 @@ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
 
     public abstract ArgumentBuilder<S, ?> createBuilder();
 
-    protected abstract String getSortedKey();
+    public abstract String getSortedKey();
 
     public Collection<? extends CommandNode<S>> getRelevantNodes(final StringReader input) {
         if (literals.size() > 0) {

@@ -116,7 +116,7 @@ public class LiteralCommandNode<S> extends CommandNode<S> {
     }
 
     @Override
-    protected String getSortedKey() {
+    public String getSortedKey() {
         return literal;
     }
 
