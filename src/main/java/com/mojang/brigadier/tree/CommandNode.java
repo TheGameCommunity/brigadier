@@ -25,7 +25,7 @@ import java.util.function.Predicate;
 
 public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
     private final Map<String, CommandNode<S>> children = new LinkedHashMap<>();
-    private final Map<String, LiteralCommandNode<S>> literals = new LinkedHashMap<>();
+    private final Map<String, LiteralNode<S, ?>> literals = new LinkedHashMap<>();
     private final Map<String, ArgumentCommandNode<S, ?>> arguments = new LinkedHashMap<>();
     private final Predicate<S> requirement;
     private final CommandNode<S> redirect;
@@ -66,8 +66,8 @@ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
     }
 
     public void addChild(final CommandNode<S> node) {
-        if (node instanceof RootCommandNode) {
-            throw new UnsupportedOperationException("Cannot add a RootCommandNode as a child to any other CommandNode");
+        if (node instanceof RootNode) {
+            throw new UnsupportedOperationException("Cannot add a RootNode as a child to any other CommandNode");
         }
 
         final CommandNode<S> child = children.get(node.getName());
@@ -81,8 +81,8 @@ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
             }
         } else {
             children.put(node.getName(), node);
-            if (node instanceof LiteralCommandNode) {
-                literals.put(node.getName(), (LiteralCommandNode<S>) node);
+            if (node instanceof LiteralNode) {
+                literals.put(node.getName(), (LiteralNode<S, ?>) node);
             } else if (node instanceof ArgumentCommandNode) {
                 arguments.put(node.getName(), (ArgumentCommandNode<S, ?>) node);
             }
@@ -158,7 +158,7 @@ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
             }
             final String text = input.getString().substring(cursor, input.getCursor());
             input.setCursor(cursor);
-            final LiteralCommandNode<S> literal = literals.get(text);
+            final CommandNode<S> literal = literals.get(text).getThis();
             if (literal != null) {
                 return Collections.singleton(literal);
             } else {
