@@ -158,7 +158,7 @@ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
             }
             final String text = input.getString().substring(cursor, input.getCursor());
             input.setCursor(cursor);
-            final CommandNode<S> literal = literals.get(text).getThis();
+            final CommandNode<S> literal = literals.get(text) != null ? literals.get(text).getThis() : null;
             if (literal != null) {
                 return Collections.singleton(literal);
             } else {

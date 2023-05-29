@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
-public class RootCommandNode<S> extends CommandNode<S> {
+public class RootCommandNode<S> extends CommandNode<S> implements RootNode<S, RootCommandNode<S>> {
     public RootCommandNode() {
         super(null, c -> true, null, s -> Collections.singleton(s.getSource()), false);
     }

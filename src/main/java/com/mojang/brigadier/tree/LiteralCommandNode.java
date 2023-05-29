@@ -20,7 +20,7 @@ import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
-public class LiteralCommandNode<S> extends CommandNode<S> {
+public class LiteralCommandNode<S> extends CommandNode<S> implements LiteralNode<S, LiteralCommandNode<S>> {
     private final String literal;
     private final String literalLowerCase;
 
