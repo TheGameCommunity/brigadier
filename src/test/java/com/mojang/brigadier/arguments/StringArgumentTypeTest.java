@@ -8,7 +8,7 @@ import com.mojang.brigadier.context.CommandContextBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.mojang.brigadier.arguments.StringArgumentType.escapeIfRequired;
 import static com.mojang.brigadier.arguments.StringArgumentType.greedyString;
@@ -31,7 +31,7 @@ public class StringArgumentTypeTest {
     public void testParseWord() throws Exception {
         final StringReader reader = mock(StringReader.class);
         when(reader.readUnquotedString()).thenReturn("hello");
-        assertThat(word().parse(reader), equalTo("hello"));
+        assertThat(word().parse(context.getSource(), reader), equalTo("hello"));
         verify(reader).readUnquotedString();
     }
 
@@ -39,14 +39,14 @@ public class StringArgumentTypeTest {
     public void testParseString() throws Exception {
         final StringReader reader = mock(StringReader.class);
         when(reader.readString()).thenReturn("hello world");
-        assertThat(string().parse(reader), equalTo("hello world"));
+        assertThat(string().parse(context.getSource(), reader), equalTo("hello world"));
         verify(reader).readString();
     }
 
     @Test
     public void testParseGreedyString() throws Exception {
         final StringReader reader = new StringReader("Hello world! This is a test.");
-        assertThat(greedyString().parse(reader), equalTo("Hello world! This is a test."));
+        assertThat(greedyString().parse(context.getSource(), reader), equalTo("Hello world! This is a test."));
         assertThat(reader.canRead(), is(false));
     }
 

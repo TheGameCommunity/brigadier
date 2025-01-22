@@ -46,6 +46,11 @@ atlassian-ide-plugin.xml
 # Crashlytics plugin (for Android Studio and IntelliJ)
 com_crashlytics_export_strings.xml
 
+# Eclipse
+.classpath
+.project
+.settings/
+
 
 ### Gradle ###
 .gradle
@@ -66,3 +71,4 @@ hs_err_pid*
 
 
 repo/
+/bin/

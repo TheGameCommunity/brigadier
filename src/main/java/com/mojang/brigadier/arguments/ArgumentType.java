@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 public interface ArgumentType<T> {
-    T parse(StringReader reader) throws CommandSyntaxException;
+    <S> T parse(S context, StringReader reader) throws CommandSyntaxException;
 
     default <S> T parse(final StringReader reader, final S source) throws CommandSyntaxException {
         return parse(reader);

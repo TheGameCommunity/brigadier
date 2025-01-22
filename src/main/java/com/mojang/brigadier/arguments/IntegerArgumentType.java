@@ -46,7 +46,7 @@ public class IntegerArgumentType implements ArgumentType<Integer> {
     }
 
     @Override
-    public Integer parse(final StringReader reader) throws CommandSyntaxException {
+    public <S> Integer parse(final S context, final StringReader reader) throws CommandSyntaxException {
         final int start = reader.getCursor();
         final int result = reader.readInt();
         if (result < minimum) {

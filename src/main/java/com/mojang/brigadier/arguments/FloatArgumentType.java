@@ -46,7 +46,7 @@ public class FloatArgumentType implements ArgumentType<Float> {
     }
 
     @Override
-    public Float parse(final StringReader reader) throws CommandSyntaxException {
+    public <S> Float parse(final S context, final StringReader reader) throws CommandSyntaxException {
         final int start = reader.getCursor();
         final float result = reader.readFloat();
         if (result < minimum) {

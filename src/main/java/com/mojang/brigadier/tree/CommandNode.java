@@ -25,7 +25,7 @@ import java.util.function.Predicate;
 
 public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
     private final Map<String, CommandNode<S>> children = new LinkedHashMap<>();
-    private final Map<String, LiteralCommandNode<S>> literals = new LinkedHashMap<>();
+    private final Map<String, LiteralNode<S, ?>> literals = new LinkedHashMap<>();
     private final Map<String, ArgumentCommandNode<S, ?>> arguments = new LinkedHashMap<>();
     private final Predicate<S> requirement;
     private final CommandNode<S> redirect;
@@ -66,8 +66,8 @@ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
     }
 
     public void addChild(final CommandNode<S> node) {
-        if (node instanceof RootCommandNode) {
-            throw new UnsupportedOperationException("Cannot add a RootCommandNode as a child to any other CommandNode");
+        if (node instanceof RootNode) {
+            throw new UnsupportedOperationException("Cannot add a RootNode as a child to any other CommandNode");
         }
 
         final CommandNode<S> child = children.get(node.getName());
@@ -81,8 +81,8 @@ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
             }
         } else {
             children.put(node.getName(), node);
-            if (node instanceof LiteralCommandNode) {
-                literals.put(node.getName(), (LiteralCommandNode<S>) node);
+            if (node instanceof LiteralNode) {
+                literals.put(node.getName(), (LiteralNode<S, ?>) node);
             } else if (node instanceof ArgumentCommandNode) {
                 arguments.put(node.getName(), (ArgumentCommandNode<S, ?>) node);
             }
@@ -99,7 +99,7 @@ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
                 }
 
                 for (final String input : child.getExamples()) {
-                    if (sibling.isValidInput(input)) {
+                    if (sibling.isValidInput(consumer.getSource(), input)) {
                         matches.add(input);
                     }
                 }
@@ -114,7 +114,7 @@ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
         }
     }
 
-    protected abstract boolean isValidInput(final String input);
+    public abstract boolean isValidInput(S source, final String input);
 
     @Override
     public boolean equals(final Object o) {
@@ -148,7 +148,7 @@ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
 
     public abstract ArgumentBuilder<S, ?> createBuilder();
 
-    protected abstract String getSortedKey();
+    public abstract String getSortedKey();
 
     public Collection<? extends CommandNode<S>> getRelevantNodes(final StringReader input) {
         if (literals.size() > 0) {
@@ -158,7 +158,7 @@ public abstract class CommandNode<S> implements Comparable<CommandNode<S>> {
             }
             final String text = input.getString().substring(cursor, input.getCursor());
             input.setCursor(cursor);
-            final LiteralCommandNode<S> literal = literals.get(text);
+            final CommandNode<S> literal = literals.get(text) != null ? literals.get(text).getThis() : null;
             if (literal != null) {
                 return Collections.singleton(literal);
             } else {

@@ -20,7 +20,7 @@ import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
-public class LiteralCommandNode<S> extends CommandNode<S> {
+public class LiteralCommandNode<S> extends CommandNode<S> implements LiteralNode<S, LiteralCommandNode<S>> {
     private final String literal;
     private final String literalLowerCase;
 
@@ -77,7 +77,7 @@ public class LiteralCommandNode<S> extends CommandNode<S> {
     }
 
     @Override
-    public boolean isValidInput(final String input) {
+    public boolean isValidInput(S source, final String input) {
         return parse(new StringReader(input)) > -1;
     }
 
@@ -116,7 +116,7 @@ public class LiteralCommandNode<S> extends CommandNode<S> {
     }
 
     @Override
-    protected String getSortedKey() {
+    public String getSortedKey() {
         return literal;
     }
 

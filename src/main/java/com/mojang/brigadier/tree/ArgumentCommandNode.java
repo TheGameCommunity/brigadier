@@ -85,10 +85,10 @@ public class ArgumentCommandNode<S, T> extends CommandNode<S> {
     }
 
     @Override
-    public boolean isValidInput(final String input) {
+    public boolean isValidInput(final S source, final String input) {
         try {
             final StringReader reader = new StringReader(input);
-            type.parse(reader);
+            type.parse(source, reader);
             return !reader.canRead() || reader.peek() == ' ';
         } catch (final CommandSyntaxException ignored) {
             return false;
@@ -115,7 +115,7 @@ public class ArgumentCommandNode<S, T> extends CommandNode<S> {
     }
 
     @Override
-    protected String getSortedKey() {
+    public String getSortedKey() {
         return name;
     }
 

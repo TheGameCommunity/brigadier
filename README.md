@@ -1,56 +1,10 @@
-# Brigadier [![Latest release](https://img.shields.io/github/release/Mojang/brigadier.svg)](https://github.com/Mojang/brigadier/releases/latest) [![License](https://img.shields.io/github/license/Mojang/brigadier.svg)](https://github.com/Mojang/brigadier/blob/master/LICENSE)
+# Brigadier [![License](https://img.shields.io/github/license/Mojang/brigadier.svg)](https://github.com/Mojang/brigadier/blob/master/LICENSE)
 
 Brigadier is a command parser & dispatcher, designed and developed for Minecraft: Java Edition and now freely available for use elsewhere under the MIT license.
 
 # Installation
-Brigadier is available to Maven & Gradle via `libraries.minecraft.net`. Its group is `com.mojang`, and artifact name is `brigadier`.
 
-## Gradle
-First include our repository:
-```groovy
-maven {
-    url "https://libraries.minecraft.net"
-}
-```
-
-And then use this library (change `(the latest version)` to the latest version!):
-```groovy
-compile 'com.mojang:brigadier:(the latest version)'
-```
-
-## Maven
-First include our repository:
-```xml
-<repository>
-  <id>minecraft-libraries</id>
-  <name>Minecraft Libraries</name>
-  <url>https://libraries.minecraft.net</url>
-</repository>
-```
-
-And then use this library (change `(the latest version)` to the latest version!):
-```xml
-<dependency>
-    <groupId>com.mojang</groupId>
-    <artifactId>brigadier</artifactId>
-    <version>(the latest version)</version>
-</dependency>
-```
-
-# Contributing
-Contributions are welcome! :D
-
-Most contributions will require you to agree to a Contributor License Agreement (CLA) declaring that you have the right to,
-and actually do, grant us the rights to use your contribution. For details, visit https://cla.microsoft.com.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-# Usage
-At the heart of Brigadier, you need a `CommandDispatcher<S>`, where `<S>` is any custom object you choose to identify a "command source".
-
-A command dispatcher holds a "command tree", which is a series of `CommandNode`s that represent the various possible syntax options that form a valid command.
+<soon>
 
 ## Registering a new command
 Before we can start parsing and dispatching commands, we need to build up our command tree. Every registration is an append operation,

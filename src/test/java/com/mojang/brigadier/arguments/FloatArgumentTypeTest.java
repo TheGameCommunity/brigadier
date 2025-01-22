@@ -11,7 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.mojang.brigadier.arguments.FloatArgumentType.floatArg;
 import static org.hamcrest.Matchers.hasToString;
@@ -33,7 +33,7 @@ public class FloatArgumentTypeTest {
     @Test
     public void parse() throws Exception {
         final StringReader reader = new StringReader("15");
-        assertThat(floatArg().parse(reader), is(15f));
+        assertThat(floatArg().parse(context.getSource(), reader), is(15f));
         assertThat(reader.canRead(), is(false));
     }
 
@@ -41,7 +41,7 @@ public class FloatArgumentTypeTest {
     public void parse_tooSmall() throws Exception {
         final StringReader reader = new StringReader("-5");
         try {
-            floatArg(0, 100).parse(reader);
+            floatArg(0, 100).parse(context.getSource(), reader);
             fail();
         } catch (final CommandSyntaxException ex) {
             assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.floatTooLow()));
@@ -53,7 +53,7 @@ public class FloatArgumentTypeTest {
     public void parse_tooBig() throws Exception {
         final StringReader reader = new StringReader("5");
         try {
-            floatArg(-100, 0).parse(reader);
+            floatArg(-100, 0).parse(context.getSource(), reader);
             fail();
         } catch (final CommandSyntaxException ex) {
             assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.floatTooHigh()));
@@ -76,6 +76,6 @@ public class FloatArgumentTypeTest {
         assertThat(floatArg(), hasToString("float()"));
         assertThat(floatArg(-100), hasToString("float(-100.0)"));
         assertThat(floatArg(-100, 100), hasToString("float(-100.0, 100.0)"));
-        assertThat(floatArg(Integer.MIN_VALUE, 100), hasToString("float(-2.14748365E9, 100.0)"));
+        assertThat(floatArg(Integer.MIN_VALUE, 100), hasToString("float(-2.1474836E9, 100.0)"));
     }
 }

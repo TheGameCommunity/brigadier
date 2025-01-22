@@ -46,7 +46,7 @@ public class LongArgumentType implements ArgumentType<Long> {
     }
 
     @Override
-    public Long parse(final StringReader reader) throws CommandSyntaxException {
+    public <S> Long parse(final S context, final StringReader reader) throws CommandSyntaxException {
         final int start = reader.getCursor();
         final long result = reader.readLong();
         if (result < minimum) {

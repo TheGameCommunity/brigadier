@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
 import static org.hamcrest.Matchers.is;
@@ -29,11 +29,11 @@ public class BoolArgumentTypeTest {
         type = bool();
     }
 
-    @Test
+	@Test
     public void parse() throws Exception {
         final StringReader reader = mock(StringReader.class);
         when(reader.readBoolean()).thenReturn(true);
-        assertThat(type.parse(reader), is(true));
+        assertThat(type.parse(context.getSource(), reader), is(true));
         verify(reader).readBoolean();
     }
 }

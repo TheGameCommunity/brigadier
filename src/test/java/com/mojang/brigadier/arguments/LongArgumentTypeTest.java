@@ -11,7 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.mojang.brigadier.arguments.LongArgumentType.longArg;
 import static org.hamcrest.Matchers.hasToString;
@@ -33,7 +33,7 @@ public class LongArgumentTypeTest {
     @Test
     public void parse() throws Exception {
         final StringReader reader = new StringReader("15");
-        assertThat(longArg().parse(reader), is(15L));
+        assertThat(longArg().parse(context.getSource(), reader), is(15L));
         assertThat(reader.canRead(), is(false));
     }
 
@@ -41,7 +41,7 @@ public class LongArgumentTypeTest {
     public void parse_tooSmall() throws Exception {
         final StringReader reader = new StringReader("-5");
         try {
-            longArg(0, 100).parse(reader);
+            longArg(0, 100).parse(context.getSource(), reader);
             fail();
         } catch (final CommandSyntaxException ex) {
             assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.longTooLow()));
@@ -53,7 +53,7 @@ public class LongArgumentTypeTest {
     public void parse_tooBig() throws Exception {
         final StringReader reader = new StringReader("5");
         try {
-            longArg(-100, 0).parse(reader);
+            longArg(-100, 0).parse(context.getSource(), reader);
             fail();
         } catch (final CommandSyntaxException ex) {
             assertThat(ex.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.longTooHigh()));

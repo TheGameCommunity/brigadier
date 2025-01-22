@@ -54,31 +54,40 @@ public class SuggestionsBuilder {
     public CompletableFuture<Suggestions> buildFuture() {
         return CompletableFuture.completedFuture(build());
     }
+    
+    public SuggestionsBuilder suggest(final Suggestion suggestion) {
+        result.add(suggestion);
+        return this;
+    }
 
     public SuggestionsBuilder suggest(final String text) {
         if (text.equals(remaining)) {
             return this;
         }
-        result.add(new Suggestion(StringRange.between(start, input.length()), text));
-        return this;
+        return suggest(new Suggestion(StringRange.between(start, input.length()), text));
+    }
+    
+    public SuggestionsBuilder forceSuggest(final String text) {
+    	return suggest(new Suggestion(StringRange.between(start, input.length()), text));
     }
 
     public SuggestionsBuilder suggest(final String text, final Message tooltip) {
         if (text.equals(remaining)) {
             return this;
         }
-        result.add(new Suggestion(StringRange.between(start, input.length()), text, tooltip));
-        return this;
+        return suggest(new Suggestion(StringRange.between(start, input.length()), text, tooltip));
     }
 
+    public SuggestionsBuilder forceSuggest(final String text, final Message tooltip) {
+    	return suggest(new Suggestion(StringRange.between(start, input.length()), text, tooltip));
+    }
+    
     public SuggestionsBuilder suggest(final int value) {
-        result.add(new IntegerSuggestion(StringRange.between(start, input.length()), value));
-        return this;
+        return suggest(new IntegerSuggestion(StringRange.between(start, input.length()), value));
     }
 
     public SuggestionsBuilder suggest(final int value, final Message tooltip) {
-        result.add(new IntegerSuggestion(StringRange.between(start, input.length()), value, tooltip));
-        return this;
+        return suggest(new IntegerSuggestion(StringRange.between(start, input.length()), value, tooltip));
     }
 
     public SuggestionsBuilder add(final SuggestionsBuilder other) {
