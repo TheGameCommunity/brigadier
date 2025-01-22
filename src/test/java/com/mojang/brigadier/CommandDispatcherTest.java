@@ -5,18 +5,24 @@ package com.mojang.brigadier;
 
 import com.google.common.collect.Lists;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.context.CommandContextBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import com.mojang.brigadier.tree.RootCommandNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
 
+import static com.mojang.brigadier.arguments.IntegerArgumentType.getInteger;
 import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
 import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
 import static com.mojang.brigadier.builder.RequiredArgumentBuilder.argument;
@@ -27,12 +33,17 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
+
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -42,6 +53,8 @@ public class CommandDispatcherTest {
     private Command<Object> command;
     @Mock
     private Object source;
+    @Mock
+    private ResultConsumer<Object> consumer;
 
     @Before
     public void setUp() throws Exception {
@@ -85,7 +98,7 @@ public class CommandDispatcherTest {
     }
 
     @Test
-    public void testExecuteUnknownCommand() throws Exception {
+    public void testExecuteUnknownCommand() {
         subject.register(literal("bar"));
         subject.register(literal("baz"));
 
@@ -99,7 +112,7 @@ public class CommandDispatcherTest {
     }
 
     @Test
-    public void testExecuteImpermissibleCommand() throws Exception {
+    public void testExecuteImpermissibleCommand() {
         subject.register(literal("foo").requires(s -> false));
 
         try {
@@ -112,7 +125,7 @@ public class CommandDispatcherTest {
     }
 
     @Test
-    public void testExecuteEmptyCommand() throws Exception {
+    public void testExecuteEmptyCommand() {
         subject.register(literal(""));
 
         try {
@@ -125,7 +138,7 @@ public class CommandDispatcherTest {
     }
 
     @Test
-    public void testExecuteUnknownSubcommand() throws Exception {
+    public void testExecuteUnknownSubcommand() {
         subject.register(literal("foo").executes(command));
 
         try {
@@ -138,7 +151,7 @@ public class CommandDispatcherTest {
     }
 
     @Test
-    public void testExecuteIncorrectLiteral() throws Exception {
+    public void testExecuteIncorrectLiteral() {
         subject.register(literal("foo").executes(command).then(literal("bar")));
 
         try {
@@ -151,7 +164,7 @@ public class CommandDispatcherTest {
     }
 
     @Test
-    public void testExecuteAmbiguousIncorrectArgument() throws Exception {
+    public void testExecuteAmbiguousIncorrectArgument() {
         subject.register(
             literal("foo").executes(command)
                 .then(literal("bar"))
@@ -185,9 +198,8 @@ public class CommandDispatcherTest {
         verify(subCommand).run(any(CommandContext.class));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    public void testParseIncompleteLiteral() throws Exception {
+    public void testParseIncompleteLiteral() {
         subject.register(literal("foo").then(literal("bar").executes(command)));
 
         final ParseResults<Object> parse = subject.parse("foo ", source);
@@ -195,9 +207,8 @@ public class CommandDispatcherTest {
         assertThat(parse.getContext().getNodes().size(), is(1));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    public void testParseIncompleteArgument() throws Exception {
+    public void testParseIncompleteArgument() {
         subject.register(literal("foo").then(argument("bar", integer()).executes(command)));
 
         final ParseResults<Object> parse = subject.parse("foo ", source);
@@ -294,6 +305,49 @@ public class CommandDispatcherTest {
         verify(command).run(any(CommandContext.class));
     }
 
+    @Test
+    public void testCorrectExecuteContextAfterRedirect() throws Exception {
+        final CommandDispatcher<Integer> subject = new CommandDispatcher<>();
+
+        final RootCommandNode<Integer> root = subject.getRoot();
+        final LiteralArgumentBuilder<Integer> add = literal("add");
+        final LiteralArgumentBuilder<Integer> blank = literal("blank");
+        final RequiredArgumentBuilder<Integer, Integer> addArg = argument("value", integer());
+        final LiteralArgumentBuilder<Integer> run = literal("run");
+
+        subject.register(add.then(addArg.redirect(root, c -> c.getSource() + getInteger(c, "value"))));
+        subject.register(blank.redirect(root));
+        subject.register(run.executes(CommandContext::getSource));
+
+        assertThat(subject.execute("run", 0), is(0));
+        assertThat(subject.execute("run", 1), is(1));
+
+        assertThat(subject.execute("add 5 run", 1), is(1 + 5));
+        assertThat(subject.execute("add 5 add 6 run", 2), is(2 + 5 + 6));
+        assertThat(subject.execute("add 5 blank run", 1), is(1 + 5));
+        assertThat(subject.execute("blank add 5 run", 1), is(1 + 5));
+        assertThat(subject.execute("add 5 blank add 6 run", 2), is(2 + 5 + 6));
+        assertThat(subject.execute("add 5 blank blank add 6 run", 2), is(2 + 5 + 6));
+    }
+
+    @Test
+    public void testSharedRedirectAndExecuteNodes() throws CommandSyntaxException {
+        final CommandDispatcher<Integer> subject = new CommandDispatcher<>();
+
+        final RootCommandNode<Integer> root = subject.getRoot();
+        final LiteralArgumentBuilder<Integer> add = literal("add");
+        final RequiredArgumentBuilder<Integer, Integer> addArg = argument("value", integer());
+
+        subject.register(add.then(
+            addArg
+                .redirect(root, c -> c.getSource() + getInteger(c, "value"))
+                .executes(CommandContext::getSource)
+        ));
+
+        assertThat(subject.execute("add 5", 1), is(1));
+        assertThat(subject.execute("add 5 add 6", 1), is(1 + 5));
+    }
+
     @SuppressWarnings("unchecked")
     @Test
     public void testExecuteRedirected() throws Exception {
@@ -301,7 +355,7 @@ public class CommandDispatcherTest {
         final Object source1 = new Object();
         final Object source2 = new Object();
 
-        when(modifier.apply(argThat(hasProperty("source", is(source))))).thenReturn(Lists.newArrayList(source1, source2));
+        when(modifier.apply(org.mockito.hamcrest.MockitoHamcrest.argThat(hasProperty("source", is(source))))).thenReturn(Lists.newArrayList(source1, source2));
 
         final LiteralCommandNode<Object> concreteNode = subject.register(literal("actual").executes(command));
         final LiteralCommandNode<Object> redirectNode = subject.register(literal("redirected").fork(subject.getRoot(), modifier));
@@ -335,9 +389,9 @@ public class CommandDispatcherTest {
             .then(literal("bar")
                 .then(argument("value", integer()).executes(context -> IntegerArgumentType.getInteger(context, "value"))))
             .then(literal("awa").executes(context -> 2)));
-        final LiteralCommandNode<Object> baz = subject.register(literal("baz").redirect(foo));
+        subject.register(literal("baz").redirect(foo));
         try {
-            int result = subject.execute("baz bar", source);
+            subject.execute("baz bar", source);
             fail("Should have thrown an exception");
         } catch (CommandSyntaxException e) {
             assertThat(e.getType(), is(CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand()));
@@ -345,23 +399,19 @@ public class CommandDispatcherTest {
     }
 
     @Test
-    public void testRedirectModifierEmptyResult() {
+    public void testRedirectModifierEmptyResult() throws CommandSyntaxException {
         final LiteralCommandNode<Object> foo = subject.register(literal("foo")
             .then(literal("bar")
                 .then(argument("value", integer()).executes(context -> IntegerArgumentType.getInteger(context, "value"))))
             .then(literal("awa").executes(context -> 2)));
         final RedirectModifier<Object> emptyModifier = context -> Collections.emptyList();
-        final LiteralCommandNode<Object> baz = subject.register(literal("baz").fork(foo, emptyModifier));
-        try {
-            int result = subject.execute("baz bar 100", source);
-            assertThat(result, is(0)); // No commands executed, so result is 0
-        } catch (CommandSyntaxException e) {
-            fail("Should not throw an exception");
-        }
+        subject.register(literal("baz").fork(foo, emptyModifier));
+        int result = subject.execute("baz bar 100", source);
+        assertThat(result, is(0)); // No commands executed, so result is 0
     }
 
     @Test
-    public void testExecuteOrphanedSubcommand() throws Exception {
+    public void testExecuteOrphanedSubcommand() {
         subject.register(literal("foo").then(
             argument("bar", integer())
         ).executes(command));
@@ -375,6 +425,7 @@ public class CommandDispatcherTest {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testExecute_invalidOther() throws Exception {
         final Command<Object> wrongCommand = mock(Command.class);
@@ -387,7 +438,7 @@ public class CommandDispatcherTest {
     }
 
     @Test
-    public void parse_noSpaceSeparator() throws Exception {
+    public void parse_noSpaceSeparator() {
         subject.register(literal("foo").then(argument("bar", integer()).executes(command)));
 
         try {
@@ -400,7 +451,7 @@ public class CommandDispatcherTest {
     }
 
     @Test
-    public void testExecuteInvalidSubcommand() throws Exception {
+    public void testExecuteInvalidSubcommand() {
         subject.register(literal("foo").then(
             argument("bar", integer())
         ).executes(command));
@@ -433,5 +484,171 @@ public class CommandDispatcherTest {
     @Test
     public void testFindNodeDoesntExist() {
         assertThat(subject.findNode(Lists.newArrayList("foo", "bar")), is(nullValue()));
+    }
+
+    @Test
+    public void testResultConsumerInNonErrorRun() throws CommandSyntaxException {
+        subject.setConsumer(consumer);
+
+        subject.register(literal("foo").executes(command));
+        when(command.run(any())).thenReturn(5);
+
+        assertThat(subject.execute("foo", source), is(5));
+        verify(consumer).onCommandComplete(any(), eq(true), eq(5));
+        verifyNoMoreInteractions(consumer);
+    }
+
+    @Test
+    public void testResultConsumerInForkedNonErrorRun() throws CommandSyntaxException {
+        subject.setConsumer(consumer);
+
+        subject.register(literal("foo").executes(c -> (Integer)(c.getSource())));
+        final Object[] contexts = new Object[] {9, 10, 11};
+
+        subject.register(literal("repeat").fork(subject.getRoot(), context -> Arrays.asList(contexts)));
+
+        assertThat(subject.execute("repeat foo", source), is(contexts.length));
+        verify(consumer).onCommandComplete(argThat(contextSourceMatches(contexts[0])), eq(true), eq(9));
+        verify(consumer).onCommandComplete(argThat(contextSourceMatches(contexts[1])), eq(true), eq(10));
+        verify(consumer).onCommandComplete(argThat(contextSourceMatches(contexts[2])), eq(true), eq(11));
+        verifyNoMoreInteractions(consumer);
+    }
+
+    @Test
+    public void testExceptionInNonForkedCommand() throws CommandSyntaxException {
+        subject.setConsumer(consumer);
+        subject.register(literal("crash").executes(command));
+        final CommandSyntaxException exception = CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerExpectedBool().create();
+        when(command.run(any())).thenThrow(exception);
+
+        try {
+            subject.execute("crash", source);
+            fail();
+        } catch (final CommandSyntaxException ex) {
+            assertThat(ex, is(exception));
+        }
+
+        verify(consumer).onCommandComplete(any(), eq(false), eq(0));
+        verifyNoMoreInteractions(consumer);
+    }
+
+    @Test
+    public void testExceptionInNonForkedRedirectedCommand() throws CommandSyntaxException {
+        subject.setConsumer(consumer);
+        subject.register(literal("crash").executes(command));
+        subject.register(literal("redirect").redirect(subject.getRoot()));
+
+        final CommandSyntaxException exception = CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerExpectedBool().create();
+        when(command.run(any())).thenThrow(exception);
+
+        try {
+            subject.execute("redirect crash", source);
+            fail();
+        } catch (final CommandSyntaxException ex) {
+            assertThat(ex, is(exception));
+        }
+
+        verify(consumer).onCommandComplete(any(), eq(false), eq(0));
+        verifyNoMoreInteractions(consumer);
+    }
+
+    @Test
+    public void testExceptionInForkedRedirectedCommand() throws CommandSyntaxException {
+        subject.setConsumer(consumer);
+        subject.register(literal("crash").executes(command));
+        subject.register(literal("redirect").fork(subject.getRoot(), Collections::singleton));
+
+        final CommandSyntaxException exception = CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerExpectedBool().create();
+        lenient().when(command.run(any())).thenThrow(exception);
+
+        assertThat(subject.execute("redirect crash", source), is(0));
+        verify(consumer).onCommandComplete(any(), eq(false), eq(0));
+        verifyNoMoreInteractions(consumer);
+    }
+
+    @Test
+    public void testExceptionInNonForkedRedirect() throws CommandSyntaxException {
+        final CommandSyntaxException exception = CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerExpectedBool().create();
+
+        subject.setConsumer(consumer);
+        subject.register(literal("noop").executes(command));
+        subject.register(literal("redirect").redirect(subject.getRoot(), context -> {
+            throw exception;
+        }));
+
+        lenient().when(command.run(any())).thenReturn(3);
+
+        try {
+            subject.execute("redirect noop", source);
+            fail();
+        } catch (final CommandSyntaxException ex) {
+            assertThat(ex, is(exception));
+        }
+
+        verifyNoInteractions(command);
+        verify(consumer).onCommandComplete(any(), eq(false), eq(0));
+        verifyNoMoreInteractions(consumer);
+    }
+
+    @Test
+    public void testExceptionInForkedRedirect() throws CommandSyntaxException {
+        final CommandSyntaxException exception = CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerExpectedBool().create();
+
+        subject.setConsumer(consumer);
+        subject.register(literal("noop").executes(command));
+        subject.register(literal("redirect").fork(subject.getRoot(), context -> {
+            throw exception;
+        }));
+
+        lenient().when(command.run(any())).thenReturn(3);
+
+
+        assertThat(subject.execute("redirect noop", source), is(0));
+
+        verifyNoInteractions(command);
+        verify(consumer).onCommandComplete(any(), eq(false), eq(0));
+        verifyNoMoreInteractions(consumer);
+    }
+
+    @Test
+    public void testPartialExceptionInForkedRedirect() throws CommandSyntaxException {
+        final CommandSyntaxException exception = CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerExpectedBool().create();
+        final Object otherSource = new Object();
+        final Object rejectedSource = new Object();
+
+        subject.setConsumer(consumer);
+        subject.register(literal("run").executes(command));
+        subject.register(literal("split").fork(subject.getRoot(), context -> Arrays.asList(source, rejectedSource, otherSource)));
+        subject.register(literal("filter").fork(subject.getRoot(), context -> {
+            final Object currentSource = context.getSource();
+            if (currentSource == rejectedSource) {
+                throw exception;
+            }
+            return Collections.singleton(currentSource);
+        }));
+
+        when(command.run(any())).thenReturn(3);
+
+        assertThat(subject.execute("split filter run", source), is(2));
+
+        verify(command).run(argThat(contextSourceMatches(source)));
+        verify(command).run(argThat(contextSourceMatches(otherSource)));
+        verifyNoMoreInteractions(command);
+
+        verify(consumer).onCommandComplete(argThat(contextSourceMatches(rejectedSource)), eq(false), eq(0));
+        verify(consumer).onCommandComplete(argThat(contextSourceMatches(source)), eq(true), eq(3));
+        verify(consumer).onCommandComplete(argThat(contextSourceMatches(otherSource)), eq(true), eq(3));
+        verifyNoMoreInteractions(consumer);
+    }
+    
+    public static ArgumentMatcher<CommandContext<Object>> contextSourceMatches(final Object source) {
+    	return new ArgumentMatcher<CommandContext<Object>>() {
+
+			@Override
+			public boolean matches(CommandContext<Object> object) {
+				return (object instanceof CommandContext) && ((CommandContext<?>) object).getSource() == source;
+			}
+    		
+    	};
     }
 }

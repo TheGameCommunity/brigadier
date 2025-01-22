@@ -16,6 +16,10 @@ import java.util.concurrent.CompletableFuture;
 public interface ArgumentType<T> {
     <S> T parse(S context, StringReader reader) throws CommandSyntaxException;
 
+    default <S> T parse(final StringReader reader, final S source) throws CommandSyntaxException {
+        return parse(source, reader);
+    }
+
     default <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
         return Suggestions.empty();
     }
