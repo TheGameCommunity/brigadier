@@ -12,11 +12,10 @@ import com.mojang.brigadier.context.CommandContextBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.mojang.brigadier.tree.RootCommandNode;
-import org.hamcrest.CustomMatcher;
-import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -35,15 +34,16 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -355,7 +355,7 @@ public class CommandDispatcherTest {
         final Object source1 = new Object();
         final Object source2 = new Object();
 
-        when(modifier.apply(argThat(hasProperty("source", is(source))))).thenReturn(Lists.newArrayList(source1, source2));
+        when(modifier.apply(org.mockito.hamcrest.MockitoHamcrest.argThat(hasProperty("source", is(source))))).thenReturn(Lists.newArrayList(source1, source2));
 
         final LiteralCommandNode<Object> concreteNode = subject.register(literal("actual").executes(command));
         final LiteralCommandNode<Object> redirectNode = subject.register(literal("redirected").fork(subject.getRoot(), modifier));
@@ -559,7 +559,7 @@ public class CommandDispatcherTest {
         subject.register(literal("redirect").fork(subject.getRoot(), Collections::singleton));
 
         final CommandSyntaxException exception = CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerExpectedBool().create();
-        when(command.run(any())).thenThrow(exception);
+        lenient().when(command.run(any())).thenThrow(exception);
 
         assertThat(subject.execute("redirect crash", source), is(0));
         verify(consumer).onCommandComplete(any(), eq(false), eq(0));
@@ -576,7 +576,7 @@ public class CommandDispatcherTest {
             throw exception;
         }));
 
-        when(command.run(any())).thenReturn(3);
+        lenient().when(command.run(any())).thenReturn(3);
 
         try {
             subject.execute("redirect noop", source);
@@ -585,7 +585,7 @@ public class CommandDispatcherTest {
             assertThat(ex, is(exception));
         }
 
-        verifyZeroInteractions(command);
+        verifyNoInteractions(command);
         verify(consumer).onCommandComplete(any(), eq(false), eq(0));
         verifyNoMoreInteractions(consumer);
     }
@@ -600,12 +600,12 @@ public class CommandDispatcherTest {
             throw exception;
         }));
 
-        when(command.run(any())).thenReturn(3);
+        lenient().when(command.run(any())).thenReturn(3);
 
 
         assertThat(subject.execute("redirect noop", source), is(0));
 
-        verifyZeroInteractions(command);
+        verifyNoInteractions(command);
         verify(consumer).onCommandComplete(any(), eq(false), eq(0));
         verifyNoMoreInteractions(consumer);
     }
@@ -640,13 +640,15 @@ public class CommandDispatcherTest {
         verify(consumer).onCommandComplete(argThat(contextSourceMatches(otherSource)), eq(true), eq(3));
         verifyNoMoreInteractions(consumer);
     }
+    
+    public static ArgumentMatcher<CommandContext<Object>> contextSourceMatches(final Object source) {
+    	return new ArgumentMatcher<CommandContext<Object>>() {
 
-    public static Matcher<CommandContext<Object>> contextSourceMatches(final Object source) {
-        return new CustomMatcher<CommandContext<Object>>("source " + source) {
-            @Override
-            public boolean matches(Object object) {
-                return (object instanceof CommandContext) && ((CommandContext<?>) object).getSource() == source;
-            }
-        };
+			@Override
+			public boolean matches(CommandContext<Object> object) {
+				return (object instanceof CommandContext) && ((CommandContext<?>) object).getSource() == source;
+			}
+    		
+    	};
     }
 }

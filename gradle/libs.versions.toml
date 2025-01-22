@@ -1,15 +1,16 @@
 [versions]
 guava_version = "33.4.0-jre"
-junit_version = "4.11"
+junit_version = "5.11.4"
 hamcrest_version = "1.3"
 mockito_version = "5.15.2"
 jmh_version = "1.37"
 
 [libraries]
 guava_core = { module = "com.google.guava:guava", version.ref = "guava_version" }
-junit = { module = "junit:junit-dep", version.ref = "junit_version" }
+junit = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit_version" }
 hamcrest = { module = "org.hamcrest:hamcrest-library", version.ref = "hamcrest_version" }
-mockito = { module = "org.mockito:mockito-core", version.ref = "mockito_version" }
+mockito_core = { module = "org.mockito:mockito-core", version.ref = "mockito_version" }
+mockito_junit = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito.version" }
 guava_testlib = { module = "com.google.guava:guava-testlib", version.ref = "guava_version" }
 jmh_core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh_version" }
 jmh_generator = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh_version" }
@@ -17,3 +18,4 @@ jmh_generator = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.r
 [bundles]
 guava = [ "guava_core", "guava_testlib" ]
 jmh = [ "jmh_core", "jmh_generator" ]
+mockito = [ "mockito_core", "mockito_junit" ]

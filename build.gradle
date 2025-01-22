@@ -27,7 +27,8 @@ dependencies {
     testImplementation libs.guava.core
     testImplementation libs.junit
     testImplementation libs.hamcrest
-    testImplementation libs.mockito
+    testImplementation libs.mockito.core
+    testImplementation libs.mockito.junit
     testImplementation libs.guava.testlib
     testImplementation libs.jmh.core
     annotationProcessor libs.jmh.generator
